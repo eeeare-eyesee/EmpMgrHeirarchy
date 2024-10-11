@@ -1,0 +1,128 @@
+select DISTINCT
+
+e.EMPLOYEE_ID as [Employee ID]
+,RTRIM(e.EMPLOYEE_AHSN) as [Employee AHSN]
+,RTRIM(e.EMPLOYEE_NAME) as [Employee Name]
+,RTRIM(e.POSITION_DESCRIPTION) as [Position Title]
+,Replace(e.PROCESS_DEPARTMENT, '-', '') as [Employee Cost Center]
+,STUFF(e.DEPARTMENT_NAME,1,7,'') AS [Employee Department]
+,RTRIM(HRCOMM.ENTNAME) AS [Entity]
+,CAST(ufs.ALPHA AS Int) as [Employee Check Approval Level (Number)] 
+,CASE WHEN UFS.ALPHA = '1' THEN 'System Chief Executive Officer'
+	  WHEN UFS.ALPHA = '2' THEN 'System President'  
+	  WHEN UFS.ALPHA = '3' THEN 'System SVP Operations/CFO'
+	  WHEN UFS.ALPHA = '4' THEN 'Division President/Sys SVP CMO/CNO'
+	  WHEN UFS.ALPHA = '5' THEN 'CAO/Division VP/System VP' 
+	  WHEN UFS.ALPHA = '6' THEN 'Exec Director/Sys AVP/Sys Dir/VP Ops'
+	  WHEN UFS.ALPHA = '7' THEN 'Director/Medical Director'
+	  WHEN UFS.ALPHA = '8' THEN 'Manager/Nurse Manager/Practice Manager/Sous Chef/Lab Chief'
+	  WHEN UFS.ALPHA = '9' THEN 'Asst Manager/Asst Nurse Manager/House Supv/Supv'
+	  WHEN UFS.ALPHA = '10' THEN 'Non-Manager' ELSE '' END AS [Employee Check Approval Level]
+,RTRIM(e.SUPERVISOR_FULL_NAME) AS [1st Level Supervisor Name]
+,ufs2.ALPHA AS [1st Level Supervisor Check Approval Level (Number)]
+,CASE WHEN UFS2.ALPHA = '1' THEN 'System Chief Executive Officer'
+	  WHEN UFS2.ALPHA = '2' THEN 'System President'  
+	  WHEN UFS2.ALPHA = '3' THEN 'System SVP Operations/CFO'
+	  WHEN UFS2.ALPHA = '4' THEN 'Division President/Sys SVP CMO/CNO'
+	  WHEN UFS2.ALPHA = '5' THEN 'CAO/Division VP/System VP' 
+	  WHEN UFS2.ALPHA = '6' THEN 'Exec Director/Sys AVP/Sys Dir/VP Ops'
+	  WHEN UFS2.ALPHA = '7' THEN 'Director/Medical Director'
+	  WHEN UFS2.ALPHA = '8' THEN 'Manager/Nurse Manager/Practice Manager/Sous Chef/Lab Chief'
+	  WHEN UFS2.ALPHA = '9' THEN 'Asst Manager/Asst Nurse Manager/House Supv/Supv'
+	  WHEN UFS2.ALPHA = '10' THEN 'Non-Manager' ELSE '' END AS [1st Level Supervisor Check Approval Level]
+,RTRIM(e2.SUPERVISOR_FULL_NAME) AS [2nd Level Supervisor Name]
+,ufs3.ALPHA AS [2nd Level Supervisor Check Approval Level (Number)]
+,CASE WHEN UFS3.ALPHA = '1' THEN 'System Chief Executive Officer'
+	  WHEN UFS3.ALPHA = '2' THEN 'System President'  
+	  WHEN UFS3.ALPHA = '3' THEN 'System SVP Operations/CFO'
+	  WHEN UFS3.ALPHA = '4' THEN 'Division President/Sys SVP CMO/CNO'
+	  WHEN UFS3.ALPHA = '5' THEN 'CAO/Division VP/System VP' 
+	  WHEN UFS3.ALPHA = '6' THEN 'Exec Director/Sys AVP/Sys Dir/VP Ops'
+	  WHEN UFS3.ALPHA = '7' THEN 'Director/Medical Director'
+	  WHEN UFS3.ALPHA = '8' THEN 'Manager/Nurse Manager/Practice Manager/Sous Chef/Lab Chief'
+	  WHEN UFS3.ALPHA = '9' THEN 'Asst Manager/Asst Nurse Manager/House Supv/Supv'
+	  WHEN UFS3.ALPHA = '10' THEN 'Non-Manager' ELSE '' END AS [2nd Level Supervisor Check Approval Level]
+,RTRIM(e3.SUPERVISOR_FULL_NAME) AS [3rd Level Supervisor Name]
+,ufs4.ALPHA AS [3rd Level Supervisor Check Approval Level (Number)]
+,CASE WHEN UFS4.ALPHA = '1' THEN 'System Chief Executive Officer'
+	  WHEN UFS4.ALPHA = '2' THEN 'System President'  
+	  WHEN UFS4.ALPHA = '3' THEN 'System SVP Operations/CFO'
+	  WHEN UFS4.ALPHA = '4' THEN 'Division President/Sys SVP CMO/CNO'
+	  WHEN UFS4.ALPHA = '5' THEN 'CAO/Division VP/System VP' 
+	  WHEN UFS4.ALPHA = '6' THEN 'Exec Director/Sys AVP/Sys Dir/VP Ops'
+	  WHEN UFS4.ALPHA = '7' THEN 'Director/Medical Director'
+	  WHEN UFS4.ALPHA = '8' THEN 'Manager/Nurse Manager/Practice Manager/Sous Chef/Lab Chief'
+	  WHEN UFS4.ALPHA = '9' THEN 'Asst Manager/Asst Nurse Manager/House Supv/Supv'
+	  WHEN UFS4.ALPHA = '10' THEN 'Non-Manager' ELSE '' END AS [3rd Level Supervisor Check Approval Level]
+
+
+--,RTRIM(e.SUPERVISOR_FULL_NAME) + ' / ' + RTRIM(e2.SUPERVISOR_FULL_NAME) + ' / ' + RTRIM(e3.SUPERVISOR_FULL_NAME) AS [Supervisor Hierarchy]
+
+
+from dbo.vwEmployeeCurrentViewAllEmployee e (NOLOCK)
+
+LEFT JOIN LTMPROD.hcm.WORKASSIGNMENT as WA (NOLOCK)
+ON e.EMPLOYEE_ID = WA.EMPLOYEE
+AND WA.ACTIVE = 1
+
+LEFT JOIN LTMPROD.hcm.POSITION p (NOLOCK)
+ON e.POSITION_CODE = p.POSITION
+
+LEFT JOIN LTMPROD.hcm.USERFIELD_STORAGE ufs (NOLOCK)
+ON p.UNIQUEID = ufs.UFSUNIQUEID AND ufs.UFSFIELDNAME = 'NortonCheckRequestLevel'
+
+left join dbo.vwEmployeeCurrentViewAllEmployee e2 (NOLOCK)
+on e.SUPERVISOR_EMP_ID = e2.EMPLOYEE_ID
+
+LEFT JOIN LTMPROD.hcm.POSITION p2 (NOLOCK)
+ON e2.POSITION_CODE = p2.POSITION
+
+LEFT JOIN LTMPROD.hcm.USERFIELD_STORAGE ufs2 (NOLOCK)
+ON p2.UNIQUEID = ufs2.UFSUNIQUEID AND ufs2.UFSFIELDNAME = 'NortonCheckRequestLevel'
+
+LEFT JOIN dbo.vwEmployeeCurrentViewAllEmployee e3 (NOLOCK)
+ON e2.SUPERVISOR_EMP_ID = e3.EMPLOYEE_ID
+
+LEFT JOIN LTMPROD.hcm.POSITION p3 (NOLOCK)
+ON e3.POSITION_CODE = p3.POSITION
+
+LEFT JOIN LTMPROD.hcm.USERFIELD_STORAGE ufs3 (NOLOCK)
+ON p3.UNIQUEID = ufs3.UFSUNIQUEID AND ufs3.UFSFIELDNAME = 'NortonCheckRequestLevel'
+
+LEFT JOIN dbo.vwEmployeeCurrentViewAllEmployee e4 (NOLOCK)
+ON e3.SUPERVISOR_EMP_ID = e4.EMPLOYEE_ID
+
+LEFT JOIN LTMPROD.hcm.POSITION p4 (NOLOCK)
+ON e4.POSITION_CODE = p4.POSITION
+
+LEFT JOIN LTMPROD.hcm.USERFIELD_STORAGE ufs4 (NOLOCK)
+ON p4.UNIQUEID = ufs4.UFSUNIQUEID AND ufs4.UFSFIELDNAME = 'NortonCheckRequestLevel'
+
+INNER JOIN LTMPROD.hcm.EMPLOYEE AS EWA (NOLOCK)
+ON EWA.EMPLOYEE = e.EMPLOYEE_ID AND EWA.PRIMARYWORKASSIGNMENT = WA.WORKASSIGNMENT
+
+ INNER JOIN (
+    SELECT CC.HRORGANIZATION, CC.HRORGANIZATIONUNIT, CC.PARENTUNIT, CC.DESCRIPTION AS 'CCNAME', CC.ACTIVE, CC.UNITTYPE, SF.DESCRIPTION AS 'SFNAME',  FN.DESCRIPTION AS 'FNNAME', EN.DESCRIPTION AS 'ENTNAME'
+    FROM   LTMPROD.hcm.HRORGANIZATIONUNIT CC
+    JOIN LTMPROD.hcm.HRORGANIZATIONUNIT SF
+    ON CC.PARENTUNIT=SF.HRORGANIZATIONUNIT
+    JOIN LTMPROD.hcm.HRORGANIZATIONUNIT FN
+    ON SF.PARENTUNIT=FN.HRORGANIZATIONUNIT 
+    JOIN LTMPROD.hcm.HRORGANIZATIONUNIT SC
+    ON FN.PARENTUNIT=SC.HRORGANIZATIONUNIT 
+    JOIN LTMPROD.hcm.HRORGANIZATIONUNIT EN
+    ON SC.PARENTUNIT=EN.HRORGANIZATIONUNIT
+    WHERE  CC.UNITTYPE='COSTCENTER' AND CC.ACTIVE='1') 
+    AS HRCOMM
+    ON HRCOMM.HRORGANIZATIONUNIT = WA.HRORGANIZATIONUNIT
+
+
+
+
+where 1=1  
+AND e.STATUS IN ('ACTIVE','LEAVE','JOB PLACEMENT','ADMIN LEAVE','EXTENDLEAVE','PENDINGLEAVE')
+AND e.RELATIONSHIPTOORGANIZATION = 'EMPLOYEE'
+--and e.EMPLOYEE_ID =44106
+
+
+Order by [Employee Check Approval Level (Number)],RTRIM(e.EMPLOYEE_NAME) asc
